@@ -1,20 +1,73 @@
 import React from "react";
 import { HighlightCard } from "../../components/HighlightCard";
+import {
+  TransactionCard,
+  TransactionCardProps,
+} from "../../components/TransactionCard";
 
 import {
   Container,
   Header,
-  HighlightCards,
-  Icon,
-  Photo,
-  User,
-  UserGreeting,
-  UserInfo,
-  UserName,
   UserWrapper,
+  UserInfo,
+  User,
+  Photo,
+  UserGreeting,
+  UserName,
+  Icon,
+  HighlightCards,
+  Transactions,
+  Title,
+  TransactionsList,
+  LogoutButton,
+  SubHeader,
+  TrashButton,
+  TrashIcon,
 } from "./styles";
 
-export function Dashboard() {
+export interface DataListProps extends TransactionCardProps {
+  id: string;
+}
+
+interface HighLightProps {
+  amount: string;
+  lastTransaction: string;
+}
+
+interface HighLightData {
+  entries: HighLightProps;
+  expensive: HighLightProps;
+  total: HighLightProps;
+}
+
+export const Dashboard = () => {
+  const data: DataListProps[] = [
+    {
+      id: "1",
+      type: "positive",
+      title: "Mobile development",
+      amount: "£ 12,000.00",
+      category: { name: "Salary", icon: "dollar-sign" },
+      date: "13/08/2021",
+    },
+    {
+      id: "2",
+      type: "negative",
+      title: "Bebop Burger",
+      amount: "£ 59.00",
+      category: { name: "Food", icon: "coffee" },
+      date: "10/08/2021",
+    },
+    {
+      id: "3",
+      type: "negative",
+      title: "Apartment rent",
+      amount: "£ 1,200.00",
+      category: { name: "Home", icon: "home" },
+      date: "28/08/2021",
+    },
+  ];
+
   return (
     <Container>
       <Header>
@@ -30,7 +83,9 @@ export function Dashboard() {
               <UserName>Thiago</UserName>
             </User>
           </UserInfo>
-          <Icon name={"power"} />
+          <LogoutButton>
+            <Icon name={"power"} />
+          </LogoutButton>
         </UserWrapper>
       </Header>
       <HighlightCards>
@@ -53,6 +108,24 @@ export function Dashboard() {
           lastTransaction={"1st to 13th of April"}
         />
       </HighlightCards>
+      <Transactions>
+        <SubHeader>
+          <Title>List</Title>
+          {data.length > 0 && (
+            <TrashButton
+            // onPress={handleClearTransactions}
+            >
+              <TrashIcon name={"trash"} />
+            </TrashButton>
+          )}
+        </SubHeader>
+
+        <TransactionsList
+          data={data}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <TransactionCard data={item} />}
+        />
+      </Transactions>
     </Container>
   );
-}
+};
