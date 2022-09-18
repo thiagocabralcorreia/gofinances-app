@@ -16,7 +16,12 @@ interface Props {
   lastTransaction: string;
 }
 
-export function HighlightCard({ title, amount, lastTransaction, type }: Props) {
+export const HighlightCard = ({
+  title,
+  amount,
+  lastTransaction,
+  type,
+}: Props) => {
   const icon = {
     up: "arrow-up-circle",
     down: "arrow-down-circle",
@@ -36,4 +41,4 @@ export function HighlightCard({ title, amount, lastTransaction, type }: Props) {
       </Footer>
     </Container>
   );
-}
+};

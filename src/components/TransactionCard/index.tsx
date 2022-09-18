@@ -27,7 +27,7 @@ interface Props {
   data: TransactionCardProps;
 }
 
-export function TransactionCard({ data }: Props) {
+export const TransactionCard = ({ data }: Props) => {
   return (
     <Container>
       <Title>{data.title}</Title>
@@ -45,4 +45,4 @@ export function TransactionCard({ data }: Props) {
       </Footer>
     </Container>
   );
-}
+};
