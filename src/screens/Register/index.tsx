@@ -1,7 +1,8 @@
 import React from "react";
 
-import { Container, Title, Header, Form } from "./styles";
 import { Input } from "../../components/Form/Input";
+import { Button } from "../../components/Form/Button";
+import { Container, Title, Header, Form, InputWrapper } from "./styles";
 
 export const Register = () => {
   return (
@@ -11,8 +12,11 @@ export const Register = () => {
       </Header>
 
       <Form>
-        <Input placeholder={"Name"} />
-        <Input placeholder={"Price"} />
+        <InputWrapper>
+          <Input placeholder={"Name"} />
+          <Input placeholder={"Price"} />
+        </InputWrapper>
+        <Button title="Sent" />
       </Form>
     </Container>
   );
