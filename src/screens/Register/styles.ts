@@ -25,4 +25,11 @@ export const Form = styled.View`
   justify-content: space-between;
 `;
 
-export const InputWrapper = styled.View``;
+export const TopFormContent = styled.View``;
+
+export const TransactionsTypes = styled.View`
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 8px;
+  margin-bottom: 16px;
+`;

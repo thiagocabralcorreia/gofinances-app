@@ -1,6 +1,6 @@
 export default {
   colors: {
-    primary: "#051829",
+    primary: "#00213f",
     secondary: "#FF872C",
     secondary_light: "rgba(255,135,44, 0.3)",
 
@@ -8,7 +8,7 @@ export default {
     success_light: "rgba(18,164,84,0.5)",
 
     attention: "#BF0B2C",
-    attention_light: "rgb(191,11,44,0.3)",
+    attention_light: "rgba(232, 63, 91, 0.5)",
 
     shape: "#FFFFFF",
     title: "#363F5F",
