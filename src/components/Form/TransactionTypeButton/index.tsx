@@ -1,5 +1,5 @@
 import React from "react";
-import { PressableProps } from "react-native";
+import { RectButtonProps } from "react-native-gesture-handler";
 
 import { Container, Title, Icon } from "./styles";
 
@@ -8,7 +8,7 @@ const icons = {
   down: "arrow-down-circle",
 };
 
-interface Props extends PressableProps {
+interface Props extends RectButtonProps {
   title: string;
   type: "up" | "down";
   isActive: boolean;

@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components/native";
-import { Pressable } from "react-native";
+import { RectButton } from "react-native-gesture-handler";
 import { RFValue } from "react-native-responsive-fontsize";
 
 import { Feather } from "@expo/vector-icons";
@@ -12,7 +12,7 @@ interface ContainerProps extends IconProps {
   isActive: boolean;
 }
 
-export const Container = styled(Pressable)<ContainerProps>`
+export const Container = styled(RectButton)<ContainerProps>`
   border-width: ${({ isActive }) => (isActive ? 0 : 1.5)}px;
   border-style: solid;
   border-color: ${({ theme }) => theme.colors.text};
