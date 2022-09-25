@@ -1,6 +1,6 @@
 import React from "react";
 import { ThemeProvider } from "styled-components";
-import AppLoading from "expo-app-loading";
+import * as SplashScreen from "expo-splash-screen";
 import {
   useFonts,
   Poppins_400Regular,
@@ -10,17 +10,24 @@ import {
 
 import theme from "./src/global/styles/theme";
 import { Register } from "./src/screens/Register";
-import { StatusBar } from "react-native";
+import { StatusBar, LogBox } from "react-native";
+
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  const [areFontsLoaded] = useFonts({
+  LogBox.ignoreLogs(["Remote debugger"]);
+  const [loadedFont] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_700Bold,
   });
 
-  if (!areFontsLoaded) {
-    return <AppLoading />;
+  if (loadedFont) {
+    // This tells the splash screen to hide immediately
+    SplashScreen.hideAsync();
+  }
+  if (!loadedFont) {
+    return null;
   }
 
   return (

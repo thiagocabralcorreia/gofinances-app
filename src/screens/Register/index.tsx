@@ -62,14 +62,7 @@ export const Register = () => {
 
   const handleRegister = (form: FormData) => {
     if (!transactionType)
-      return Alert.alert("Required transaction", "Select transaction type", [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Cancel Pressed"),
-          style: "cancel",
-        },
-        { text: "OK", onPress: () => console.log("OK Pressed") },
-      ]);
+      return Alert.alert("Required transaction", "Select transaction type");
     if (category.key === "category")
       return Alert.alert("Required category", "Select category");
 
