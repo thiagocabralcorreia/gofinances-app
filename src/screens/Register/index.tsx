@@ -122,7 +122,7 @@ export const Register = () => {
             />
           </TopFormContent>
 
-          <Button title="Sent" onPress={handleSubmit(handleRegister)} />
+          <Button title="Sent" onPress={handleSubmit(() => handleRegister)} />
         </Form>
 
         <Modal visible={categoryModalOpen}>
