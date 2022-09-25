@@ -16,7 +16,7 @@ interface Props extends TextInputProps {
   error?: string | FieldError | Merge<FieldError, FieldErrorsImpl<any>>;
 }
 
-export function InputForm({ control, name, error, ...rest }: Props) {
+export const InputForm = ({ control, name, error, ...rest }: Props) => {
   return (
     <Container>
       <Controller
@@ -29,4 +29,4 @@ export function InputForm({ control, name, error, ...rest }: Props) {
       {error && <Error>{error}</Error>}
     </Container>
   );
-}
+};

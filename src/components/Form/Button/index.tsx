@@ -7,10 +7,10 @@ interface Props extends RectButtonProps {
   onPress?: () => void;
 }
 
-export function Button({ title, ...rest }: Props) {
+export const Button = ({ title, ...rest }: Props) => {
   return (
     <Container {...rest}>
       <Title>{title}</Title>
     </Container>
   );
-}
+};
