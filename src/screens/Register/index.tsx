@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Keyboard, Modal, TouchableWithoutFeedback } from "react-native";
 import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { InputForm } from "../../components/Form/InputForm";
 import { Button } from "../../components/Form/Button";
@@ -33,6 +34,8 @@ export const Register = () => {
     icon: null,
   });
 
+  const dataKey = "@gofinances:transactions";
+
   function handleOpenCategoryListModal() {
     setCategoryModalOpen(true);
   }
@@ -60,7 +63,7 @@ export const Register = () => {
     resolver: yupResolver(schema),
   });
 
-  const handleRegister = (form: FormData) => {
+  const handleRegister = async (form: FormData) => {
     if (!transactionType)
       return Alert.alert("Required transaction", "Select transaction type");
     if (category.key === "category")
@@ -72,8 +75,23 @@ export const Register = () => {
       transactionType,
       category: category.key,
     };
+    try {
+      await AsyncStorage.setItem(dataKey, JSON.stringify(data));
+    } catch (e) {
+      console.log(e);
+      Alert.alert("Failed: unable to register information.");
+    }
     console.log(data);
   };
+
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await AsyncStorage.getItem(dataKey);
+      console.log(JSON.parse(data!));
+    };
+
+    loadData();
+  }, []);
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -102,13 +120,13 @@ export const Register = () => {
 
             <TransactionsTypes>
               <TransactionTypeButton
-                title={"Entrada"}
+                title={"Inflow"}
                 type={"up"}
                 onPress={() => handleTransactionTypeSelect("up")}
                 isActive={transactionType === "up"}
               />
               <TransactionTypeButton
-                title={"Saída"}
+                title={"Outflow"}
                 type={"down"}
                 onPress={() => handleTransactionTypeSelect("down")}
                 isActive={transactionType === "down"}
@@ -122,7 +140,7 @@ export const Register = () => {
             />
           </TopFormContent>
 
-          <Button title="Sent" onPress={handleSubmit(() => handleRegister)} />
+          <Button title="Sent" onPress={handleSubmit(handleRegister)} />
         </Form>
 
         <Modal visible={categoryModalOpen}>
