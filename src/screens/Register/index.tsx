@@ -69,19 +69,23 @@ export const Register = () => {
     if (category.key === "category")
       return Alert.alert("Required category", "Select category");
 
-    const data = {
+    const newTransaction = {
       name: form.name,
       amount: form.amount,
       transactionType,
       category: category.key,
     };
     try {
-      await AsyncStorage.setItem(dataKey, JSON.stringify(data));
+      const data = await AsyncStorage.getItem(dataKey);
+      const currentData = data ? JSON.parse(data) : [];
+
+      const formattedData = [...currentData, newTransaction];
+
+      await AsyncStorage.setItem(dataKey, JSON.stringify(formattedData));
     } catch (e) {
       console.log(e);
       Alert.alert("Failed: unable to register information.");
     }
-    console.log(data);
   };
 
   useEffect(() => {
@@ -91,6 +95,12 @@ export const Register = () => {
     };
 
     loadData();
+
+    // Remove collection:
+    // async function removeAll() {
+    //   AsyncStorage.removeItem(dataKey);
+    // }
+    // removeAll();
   }, []);
 
   return (
