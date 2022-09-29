@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Keyboard, Modal, TouchableWithoutFeedback } from "react-native";
-import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import { useForm } from "react-hook-form";
+import uuid from "react-native-uuid";
 
 import { InputForm } from "../../components/Form/InputForm";
 import { Button } from "../../components/Form/Button";
@@ -34,6 +36,7 @@ export const Register = () => {
     icon: null,
   });
 
+  const navigation = useNavigation();
   const dataKey = "@gofinances:transactions";
 
   function handleOpenCategoryListModal() {
@@ -58,6 +61,7 @@ export const Register = () => {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
@@ -70,10 +74,12 @@ export const Register = () => {
       return Alert.alert("Required category", "Select category");
 
     const newTransaction = {
+      id: String(uuid.v4()),
       name: form.name,
       amount: form.amount,
       transactionType,
       category: category.key,
+      date: new Date(),
     };
     try {
       const data = await AsyncStorage.getItem(dataKey);
@@ -82,6 +88,16 @@ export const Register = () => {
       const formattedData = [...currentData, newTransaction];
 
       await AsyncStorage.setItem(dataKey, JSON.stringify(formattedData));
+
+      reset();
+      setTransactionType("");
+      setCategory({
+        key: "category",
+        name: "Category",
+        icon: null,
+      });
+
+      navigation.navigate("List");
     } catch (e) {
       console.log(e);
       Alert.alert("Failed: unable to register information.");
