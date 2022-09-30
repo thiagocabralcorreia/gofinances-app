@@ -73,13 +73,15 @@ export const Register = () => {
     if (category.key === "category")
       return Alert.alert("Required category", "Select category");
 
+    const newDate = new Date();
+
     const newTransaction = {
       id: String(uuid.v4()),
       name: form.name,
       amount: form.amount,
       transactionType,
       category: category.key,
-      date: new Date(),
+      date: newDate.toLocaleDateString(),
     };
     try {
       const data = await AsyncStorage.getItem(dataKey);

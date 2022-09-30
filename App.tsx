@@ -3,6 +3,8 @@ import { StatusBar, LogBox } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { ThemeProvider } from "styled-components";
 import * as SplashScreen from "expo-splash-screen";
+import "intl";
+import "intl/locale-data/jsonp/en-GB";
 
 import {
   useFonts,
