@@ -1,6 +1,8 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useTheme } from "styled-components/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import uuid from "react-native-uuid";
 
 import { HighlightCard } from "../../components/HighlightCard";
@@ -27,37 +29,49 @@ import {
   SubHeader,
   TrashButton,
   TrashIcon,
+  LoadingContainer,
 } from "./styles";
+import { currencyFormatter } from "../../utils/formatters";
 
 export interface DataListProps extends TransactionCardProps {
   id: string;
 }
 
-interface HighLightProps {
+interface HighlightProps {
   amount: string;
-  lastTransaction: string;
+  // lastTransaction: string;
 }
 
-interface HighLightData {
-  entries: HighLightProps;
-  expensive: HighLightProps;
-  total: HighLightProps;
+interface IHighlightData {
+  inflows: HighlightProps;
+  outflows: HighlightProps;
+  totalBalance: HighlightProps;
 }
 
 export const Dashboard = () => {
-  const [data, setData] = useState<DataListProps[]>([]);
+  const [transactions, setTransactions] = useState<DataListProps[]>([]);
+  const [highlightData, setHighlightData] = useState({} as IHighlightData);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const theme = useTheme();
 
   const loadTransactions = async () => {
     const dataKey = "@gofinances:transactions";
     const response = await AsyncStorage.getItem(dataKey);
     const transactions = response ? JSON.parse(response) : [];
 
+    let totalInflows = 0;
+    let totalOutflows = 0;
+
     const formattedTransactions: DataListProps[] = transactions.map(
       (item: DataListProps) => {
-        const amount = Number(item.amount).toLocaleString("en-GB", {
-          style: "currency",
-          currency: "GBP",
-        });
+        if (item.type === "positive") {
+          totalInflows += Number(item.amount);
+        } else {
+          totalOutflows += Number(item.amount);
+        }
+
+        const amount = currencyFormatter(Number(item.amount));
 
         return {
           id: item.id,
@@ -70,7 +84,22 @@ export const Dashboard = () => {
       }
     );
 
-    setData(formattedTransactions);
+    setTransactions(formattedTransactions);
+
+    const totalBalance = totalInflows - totalOutflows;
+
+    setHighlightData({
+      inflows: {
+        amount: currencyFormatter(totalInflows),
+      },
+      outflows: {
+        amount: currencyFormatter(totalOutflows),
+      },
+      totalBalance: {
+        amount: currencyFormatter(totalBalance),
+      },
+    });
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -85,62 +114,70 @@ export const Dashboard = () => {
 
   return (
     <Container>
-      <Header>
-        <UserWrapper>
-          <UserInfo>
-            <Photo
-              source={{
-                uri: "https://avatars.githubusercontent.com/u/74374833?v=4",
-              }}
+      {isLoading ? (
+        <LoadingContainer>
+          <ActivityIndicator color={theme.colors.primary} size="large" />
+        </LoadingContainer>
+      ) : (
+        <>
+          <Header>
+            <UserWrapper>
+              <UserInfo>
+                <Photo
+                  source={{
+                    uri: "https://avatars.githubusercontent.com/u/74374833?v=4",
+                  }}
+                />
+                <User>
+                  <UserGreeting>Hi, </UserGreeting>
+                  <UserName>Thiago</UserName>
+                </User>
+              </UserInfo>
+              <LogoutButton>
+                <Icon name={"power"} />
+              </LogoutButton>
+            </UserWrapper>
+          </Header>
+          <HighlightCards>
+            <HighlightCard
+              type={"up"}
+              title={"Inflows"}
+              amount={highlightData.inflows.amount}
+              lastTransaction={"Last cash inflow on April 13th"}
             />
-            <User>
-              <UserGreeting>Hi, </UserGreeting>
-              <UserName>Thiago</UserName>
-            </User>
-          </UserInfo>
-          <LogoutButton>
-            <Icon name={"power"} />
-          </LogoutButton>
-        </UserWrapper>
-      </Header>
-      <HighlightCards>
-        <HighlightCard
-          type={"up"}
-          title={"Inflows"}
-          amount={"£ 00.00"}
-          lastTransaction={"Last cash inflow on April 13th"}
-        />
-        <HighlightCard
-          type={"down"}
-          title={"Outflows"}
-          amount={"£ 00.00"}
-          lastTransaction={"Last cash outflow on April 13th"}
-        />
-        <HighlightCard
-          type={"total"}
-          title={"Total"}
-          amount={"£ 00.00"}
-          lastTransaction={"1st to 13th of April"}
-        />
-      </HighlightCards>
-      <Transactions>
-        <SubHeader>
-          <Title>List</Title>
-          {data.length > 0 && (
-            <TrashButton
-            // onPress={handleClearTransactions}
-            >
-              <TrashIcon name={"trash"} />
-            </TrashButton>
-          )}
-        </SubHeader>
+            <HighlightCard
+              type={"down"}
+              title={"Outflows"}
+              amount={highlightData.outflows.amount}
+              lastTransaction={"Last cash outflow on April 13th"}
+            />
+            <HighlightCard
+              type={"total"}
+              title={"Total"}
+              amount={highlightData.totalBalance.amount}
+              lastTransaction={"1st to 13th of April"}
+            />
+          </HighlightCards>
+          <Transactions>
+            <SubHeader>
+              <Title>List</Title>
+              {transactions.length > 0 && (
+                <TrashButton
+                // onPress={handleClearTransactions}
+                >
+                  <TrashIcon name={"trash"} />
+                </TrashButton>
+              )}
+            </SubHeader>
 
-        <TransactionsList
-          data={data}
-          keyExtractor={(item) => item.id + uuid.v4()}
-          renderItem={({ item }) => <TransactionCard data={item} />}
-        />
-      </Transactions>
+            <TransactionsList
+              data={transactions}
+              keyExtractor={(item) => item.id + uuid.v4()}
+              renderItem={({ item }) => <TransactionCard data={item} />}
+            />
+          </Transactions>
+        </>
+      )}
     </Container>
   );
 };
