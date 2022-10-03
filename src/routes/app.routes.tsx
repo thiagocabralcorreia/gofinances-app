@@ -1,9 +1,10 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "styled-components";
 
 import { Dashboard } from "../screens/Dashboard";
 import { Register } from "../screens/Register";
-import { useTheme } from "styled-components";
+import { MonthlyChart } from "../screens/MonthlyChart";
 
 const { Navigator, Screen } = createBottomTabNavigator();
 
@@ -54,8 +55,8 @@ export const AppRoutes = () => {
             <MaterialIcons name={"pie-chart"} size={size} color={color} />
           ),
         }}
-        name={"Summary"}
-        component={Register}
+        name={"Chart"}
+        component={MonthlyChart}
       />
     </Navigator>
   );

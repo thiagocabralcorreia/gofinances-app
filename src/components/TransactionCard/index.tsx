@@ -11,7 +11,7 @@ import {
   Icon,
 } from "./styles";
 
-export interface TransactionCardProps {
+export interface TransactionProps {
   type: "positive" | "negative";
   name: string;
   amount: string;
@@ -19,11 +19,11 @@ export interface TransactionCardProps {
   date: string;
 }
 
-interface Props {
-  data: TransactionCardProps;
+interface TransactionCardProps {
+  data: TransactionProps;
 }
 
-export const TransactionCard = ({ data }: Props) => {
+export const TransactionCard = ({ data }: TransactionCardProps) => {
   const category = categories.filter((item) => item.key === data.category)[0];
   return (
     <Container>

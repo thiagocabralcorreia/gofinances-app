@@ -22,13 +22,17 @@ export interface CategoryProps {
   icon?: string | null;
 }
 
-interface Props {
+interface CategoryListProps {
   category: CategoryProps;
   setCategory: (category: CategoryProps) => void;
   closeList: () => void;
 }
 
-export const CategoryList = ({ category, setCategory, closeList }: Props) => {
+export const CategoryList = ({
+  category,
+  setCategory,
+  closeList,
+}: CategoryListProps) => {
   function handleCategoryList(category: CategoryProps) {
     setCategory(category);
   }
