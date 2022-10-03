@@ -1,4 +1,11 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { useTheme } from "styled-components/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import uuid from "react-native-uuid";
+
+import { currencyFormatter, dateFormatter } from "../../utils/formatters";
 import { HighlightCard } from "../../components/HighlightCard";
 import {
   TransactionCard,
@@ -23,109 +30,181 @@ import {
   SubHeader,
   TrashButton,
   TrashIcon,
+  LoadingContainer,
 } from "./styles";
 
 export interface DataListProps extends TransactionCardProps {
   id: string;
 }
 
-interface HighLightProps {
+interface HighlightProps {
   amount: string;
   lastTransaction: string;
 }
 
-interface HighLightData {
-  entries: HighLightProps;
-  expensive: HighLightProps;
-  total: HighLightProps;
+interface IHighlightData {
+  inflows: HighlightProps;
+  outflows: HighlightProps;
+  totalBalance: HighlightProps;
 }
 
 export const Dashboard = () => {
-  const data: DataListProps[] = [
-    {
-      id: "1",
-      type: "positive",
-      title: "Mobile development",
-      amount: "£ 7,000.00",
-      category: { name: "Salary", icon: "dollar-sign" },
-      date: "13/08/2021",
-    },
-    {
-      id: "2",
-      type: "negative",
-      title: "Bebop Burger",
-      amount: "£ 12.00",
-      category: { name: "Food", icon: "coffee" },
-      date: "10/08/2021",
-    },
-    {
-      id: "3",
-      type: "negative",
-      title: "Apartment rent",
-      amount: "£ 1,110.00",
-      category: { name: "Home", icon: "home" },
-      date: "28/08/2021",
-    },
-  ];
+  const [transactions, setTransactions] = useState<DataListProps[]>([]);
+  const [highlightData, setHighlightData] = useState({} as IHighlightData);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const theme = useTheme();
+
+  const getLastFlowDate = (
+    collection: DataListProps[],
+    type: "positive" | "negative"
+  ) => {
+    const lastTransaction = new Date(
+      Math.max.apply(
+        Math,
+        collection
+          .filter((transaction) => transaction.type === type)
+          .map((transaction) => new Date(transaction.date).getTime())
+      )
+    );
+
+    return `${lastTransaction.toLocaleString("en-GB", {
+      month: "long",
+    })} ${lastTransaction.getDate()}`;
+  };
+
+  const loadTransactions = async () => {
+    const dataKey = "@gofinances:transactions";
+    const response = await AsyncStorage.getItem(dataKey);
+    const transactions = response ? JSON.parse(response) : [];
+
+    let totalInflows = 0;
+    let totalOutflows = 0;
+
+    const formattedTransactions: DataListProps[] = transactions.map(
+      (item: DataListProps) => {
+        if (item.type === "positive") {
+          totalInflows += Number(item.amount);
+        } else {
+          totalOutflows += Number(item.amount);
+        }
+
+        const amount = currencyFormatter(Number(item.amount));
+
+        return {
+          id: item.id,
+          name: item.name,
+          amount,
+          type: item.type,
+          category: item.category,
+          date: item.date,
+        };
+      }
+    );
+
+    setTransactions(formattedTransactions);
+
+    const lastInflows = getLastFlowDate(transactions, "positive");
+    const lastOutflows = getLastFlowDate(transactions, "negative");
+    const totalInterval = `${
+      lastInflows >= lastOutflows ? lastInflows : lastOutflows
+    }`;
+
+    const totalBalance = totalInflows - totalOutflows;
+
+    setHighlightData({
+      inflows: {
+        amount: currencyFormatter(totalInflows),
+        lastTransaction: `Last inflow: ${lastInflows}`,
+      },
+      outflows: {
+        amount: currencyFormatter(totalOutflows),
+        lastTransaction: `Last outflow: ${lastOutflows}`,
+      },
+      totalBalance: {
+        amount: currencyFormatter(totalBalance),
+        lastTransaction: `Last transaction: ${totalInterval}`,
+      },
+    });
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadTransactions();
+    }, [])
+  );
 
   return (
     <Container>
-      <Header>
-        <UserWrapper>
-          <UserInfo>
-            <Photo
-              source={{
-                uri: "https://avatars.githubusercontent.com/u/74374833?v=4",
-              }}
+      {isLoading ? (
+        <LoadingContainer>
+          <ActivityIndicator color={theme.colors.primary} size="large" />
+        </LoadingContainer>
+      ) : (
+        <>
+          <Header>
+            <UserWrapper>
+              <UserInfo>
+                <Photo
+                  source={{
+                    uri: "https://avatars.githubusercontent.com/u/74374833?v=4",
+                  }}
+                />
+                <User>
+                  <UserGreeting>Hi, </UserGreeting>
+                  <UserName>Thiago</UserName>
+                </User>
+              </UserInfo>
+              <LogoutButton>
+                <Icon name={"power"} />
+              </LogoutButton>
+            </UserWrapper>
+          </Header>
+          <HighlightCards>
+            <HighlightCard
+              type={"up"}
+              title={"Inflows"}
+              amount={highlightData.inflows.amount}
+              lastTransaction={highlightData.inflows.lastTransaction}
             />
-            <User>
-              <UserGreeting>Hi, </UserGreeting>
-              <UserName>Thiago</UserName>
-            </User>
-          </UserInfo>
-          <LogoutButton>
-            <Icon name={"power"} />
-          </LogoutButton>
-        </UserWrapper>
-      </Header>
-      <HighlightCards>
-        <HighlightCard
-          type={"up"}
-          title={"Inflows"}
-          amount={"£ 00.00"}
-          lastTransaction={"Last cash inflow on April 13th"}
-        />
-        <HighlightCard
-          type={"down"}
-          title={"Outflows"}
-          amount={"£ 00.00"}
-          lastTransaction={"Last cash outflow on April 13th"}
-        />
-        <HighlightCard
-          type={"total"}
-          title={"Total"}
-          amount={"£ 00.00"}
-          lastTransaction={"1st to 13th of April"}
-        />
-      </HighlightCards>
-      <Transactions>
-        <SubHeader>
-          <Title>List</Title>
-          {data.length > 0 && (
-            <TrashButton
-            // onPress={handleClearTransactions}
-            >
-              <TrashIcon name={"trash"} />
-            </TrashButton>
-          )}
-        </SubHeader>
+            <HighlightCard
+              type={"down"}
+              title={"Outflows"}
+              amount={highlightData.outflows.amount}
+              lastTransaction={highlightData.outflows.lastTransaction}
+            />
+            <HighlightCard
+              type={"total"}
+              title={"Total"}
+              amount={highlightData.totalBalance.amount}
+              lastTransaction={highlightData.totalBalance.lastTransaction}
+            />
+          </HighlightCards>
+          <Transactions>
+            <SubHeader>
+              <Title>List</Title>
+              {transactions.length > 0 && (
+                <TrashButton
+                // onPress={handleClearTransactions}
+                >
+                  <TrashIcon name={"trash"} />
+                </TrashButton>
+              )}
+            </SubHeader>
 
-        <TransactionsList
-          data={data}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <TransactionCard data={item} />}
-        />
-      </Transactions>
+            <TransactionsList
+              data={transactions}
+              keyExtractor={(item) => item.id + uuid.v4()}
+              renderItem={({ item }) => <TransactionCard data={item} />}
+            />
+          </Transactions>
+        </>
+      )}
     </Container>
   );
 };

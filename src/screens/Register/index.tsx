@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Keyboard, Modal, TouchableWithoutFeedback } from "react-native";
-import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import { useForm } from "react-hook-form";
+import uuid from "react-native-uuid";
 
+import { dateFormatter } from "../../utils/formatters";
 import { InputForm } from "../../components/Form/InputForm";
 import { Button } from "../../components/Form/Button";
 import { TransactionTypeButton } from "../../components/Form/TransactionTypeButton";
@@ -33,6 +37,9 @@ export const Register = () => {
     icon: null,
   });
 
+  const navigation = useNavigation();
+  const dataKey = "@gofinances:transactions";
+
   function handleOpenCategoryListModal() {
     setCategoryModalOpen(true);
   }
@@ -40,7 +47,7 @@ export const Register = () => {
     setCategoryModalOpen(false);
   }
 
-  function handleTransactionTypeSelect(type: "up" | "down") {
+  function handleTransactionTypeSelect(type: "positive" | "negative") {
     setTransactionType(type);
   }
 
@@ -55,25 +62,63 @@ export const Register = () => {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
   });
 
-  const handleRegister = (form: FormData) => {
+  const handleRegister = async (form: FormData) => {
     if (!transactionType)
       return Alert.alert("Required transaction", "Select transaction type");
     if (category.key === "category")
       return Alert.alert("Required category", "Select category");
 
-    const data = {
+    const newTransaction = {
+      id: String(uuid.v4()),
       name: form.name,
       amount: form.amount,
-      transactionType,
+      type: transactionType,
       category: category.key,
+      date: dateFormatter(new Date()),
     };
-    console.log(data);
+    try {
+      const data = await AsyncStorage.getItem(dataKey);
+      const currentData = data ? JSON.parse(data) : [];
+
+      const formattedData = [...currentData, newTransaction];
+
+      await AsyncStorage.setItem(dataKey, JSON.stringify(formattedData));
+
+      reset();
+      setTransactionType("");
+      setCategory({
+        key: "category",
+        name: "Category",
+        icon: null,
+      });
+
+      navigation.navigate("List");
+    } catch (e) {
+      console.log(e);
+      Alert.alert("Failed: unable to register information.");
+    }
   };
+
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await AsyncStorage.getItem(dataKey);
+      console.log(JSON.parse(data!));
+    };
+
+    loadData();
+
+    // Remove collection:
+    // async function removeAll() {
+    //   AsyncStorage.removeItem(dataKey);
+    // }
+    // removeAll();
+  }, []);
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -102,16 +147,16 @@ export const Register = () => {
 
             <TransactionsTypes>
               <TransactionTypeButton
-                title={"Entrada"}
+                title={"Inflow"}
                 type={"up"}
-                onPress={() => handleTransactionTypeSelect("up")}
-                isActive={transactionType === "up"}
+                onPress={() => handleTransactionTypeSelect("positive")}
+                isActive={transactionType === "positive"}
               />
               <TransactionTypeButton
-                title={"Saída"}
+                title={"Outflow"}
                 type={"down"}
-                onPress={() => handleTransactionTypeSelect("down")}
-                isActive={transactionType === "down"}
+                onPress={() => handleTransactionTypeSelect("negative")}
+                isActive={transactionType === "negative"}
               />
             </TransactionsTypes>
 
@@ -122,7 +167,7 @@ export const Register = () => {
             />
           </TopFormContent>
 
-          <Button title="Sent" onPress={handleSubmit(() => handleRegister)} />
+          <Button title="Sent" onPress={handleSubmit(handleRegister)} />
         </Form>
 
         <Modal visible={categoryModalOpen}>
