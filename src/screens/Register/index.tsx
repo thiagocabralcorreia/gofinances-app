@@ -7,6 +7,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useForm } from "react-hook-form";
 import uuid from "react-native-uuid";
 
+import { dateFormatter } from "../../utils/formatters";
 import { InputForm } from "../../components/Form/InputForm";
 import { Button } from "../../components/Form/Button";
 import { TransactionTypeButton } from "../../components/Form/TransactionTypeButton";
@@ -73,15 +74,13 @@ export const Register = () => {
     if (category.key === "category")
       return Alert.alert("Required category", "Select category");
 
-    const newDate = new Date();
-
     const newTransaction = {
       id: String(uuid.v4()),
       name: form.name,
       amount: form.amount,
       type: transactionType,
       category: category.key,
-      date: newDate.toLocaleDateString(),
+      date: dateFormatter(new Date()),
     };
     try {
       const data = await AsyncStorage.getItem(dataKey);

@@ -5,6 +5,7 @@ import { useTheme } from "styled-components/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import uuid from "react-native-uuid";
 
+import { currencyFormatter, dateFormatter } from "../../utils/formatters";
 import { HighlightCard } from "../../components/HighlightCard";
 import {
   TransactionCard,
@@ -31,7 +32,6 @@ import {
   TrashIcon,
   LoadingContainer,
 } from "./styles";
-import { currencyFormatter } from "../../utils/formatters";
 
 export interface DataListProps extends TransactionCardProps {
   id: string;
@@ -39,7 +39,7 @@ export interface DataListProps extends TransactionCardProps {
 
 interface HighlightProps {
   amount: string;
-  // lastTransaction: string;
+  lastTransaction: string;
 }
 
 interface IHighlightData {
@@ -54,6 +54,24 @@ export const Dashboard = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const theme = useTheme();
+
+  const getLastFlowDate = (
+    collection: DataListProps[],
+    type: "positive" | "negative"
+  ) => {
+    const lastTransaction = new Date(
+      Math.max.apply(
+        Math,
+        collection
+          .filter((transaction) => transaction.type === type)
+          .map((transaction) => new Date(transaction.date).getTime())
+      )
+    );
+
+    return `${lastTransaction.toLocaleString("en-GB", {
+      month: "long",
+    })} ${lastTransaction.getDate()}`;
+  };
 
   const loadTransactions = async () => {
     const dataKey = "@gofinances:transactions";
@@ -86,17 +104,26 @@ export const Dashboard = () => {
 
     setTransactions(formattedTransactions);
 
+    const lastInflows = getLastFlowDate(transactions, "positive");
+    const lastOutflows = getLastFlowDate(transactions, "negative");
+    const totalInterval = `${
+      lastInflows >= lastOutflows ? lastInflows : lastOutflows
+    }`;
+
     const totalBalance = totalInflows - totalOutflows;
 
     setHighlightData({
       inflows: {
         amount: currencyFormatter(totalInflows),
+        lastTransaction: `Last inflow: ${lastInflows}`,
       },
       outflows: {
         amount: currencyFormatter(totalOutflows),
+        lastTransaction: `Last outflow: ${lastOutflows}`,
       },
       totalBalance: {
         amount: currencyFormatter(totalBalance),
+        lastTransaction: `Last transaction: ${totalInterval}`,
       },
     });
     setIsLoading(false);
@@ -143,19 +170,19 @@ export const Dashboard = () => {
               type={"up"}
               title={"Inflows"}
               amount={highlightData.inflows.amount}
-              lastTransaction={"Last cash inflow on April 13th"}
+              lastTransaction={highlightData.inflows.lastTransaction}
             />
             <HighlightCard
               type={"down"}
               title={"Outflows"}
               amount={highlightData.outflows.amount}
-              lastTransaction={"Last cash outflow on April 13th"}
+              lastTransaction={highlightData.outflows.lastTransaction}
             />
             <HighlightCard
               type={"total"}
               title={"Total"}
               amount={highlightData.totalBalance.amount}
-              lastTransaction={"1st to 13th of April"}
+              lastTransaction={highlightData.totalBalance.lastTransaction}
             />
           </HighlightCards>
           <Transactions>
