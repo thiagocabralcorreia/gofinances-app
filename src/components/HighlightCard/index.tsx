@@ -9,7 +9,7 @@ import {
   LastTransaction,
 } from "./styles";
 
-interface Props {
+interface HighlightCardProps {
   type: "up" | "down" | "total";
   title: string;
   amount: string;
@@ -21,7 +21,7 @@ export const HighlightCard = ({
   amount,
   lastTransaction,
   type,
-}: Props) => {
+}: HighlightCardProps) => {
   const icon = {
     up: "arrow-up-circle",
     down: "arrow-down-circle",

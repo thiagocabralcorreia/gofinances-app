@@ -7,13 +7,17 @@ import {
   IconFeather,
 } from "./styles";
 
-interface Props {
+interface CategorySelectButtonProps {
   title: string;
   icon?: string | null;
   onPress: () => void;
 }
 
-export const CategorySelectButton = ({ title, icon, onPress }: Props) => {
+export const CategorySelectButton = ({
+  title,
+  icon,
+  onPress,
+}: CategorySelectButtonProps) => {
   return (
     <Container onPress={onPress}>
       <CategorySelected>

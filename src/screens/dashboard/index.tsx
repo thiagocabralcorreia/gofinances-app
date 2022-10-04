@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useTheme } from "styled-components/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -7,9 +6,11 @@ import uuid from "react-native-uuid";
 
 import { currencyFormatter, dateFormatter } from "../../utils/formatters";
 import { HighlightCard } from "../../components/HighlightCard";
+import { Loading } from "../../components/Loading";
+
 import {
+  TransactionProps,
   TransactionCard,
-  TransactionCardProps,
 } from "../../components/TransactionCard";
 
 import {
@@ -30,10 +31,9 @@ import {
   SubHeader,
   TrashButton,
   TrashIcon,
-  LoadingContainer,
 } from "./styles";
 
-export interface DataListProps extends TransactionCardProps {
+export interface DataListProps extends TransactionProps {
   id: string;
 }
 
@@ -97,7 +97,7 @@ export const Dashboard = () => {
           amount,
           type: item.type,
           category: item.category,
-          date: item.date,
+          date: dateFormatter(item.date),
         };
       }
     );
@@ -142,9 +142,7 @@ export const Dashboard = () => {
   return (
     <Container>
       {isLoading ? (
-        <LoadingContainer>
-          <ActivityIndicator color={theme.colors.primary} size="large" />
-        </LoadingContainer>
+        <Loading />
       ) : (
         <>
           <Header>

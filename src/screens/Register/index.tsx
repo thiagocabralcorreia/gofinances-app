@@ -7,7 +7,6 @@ import { useNavigation } from "@react-navigation/native";
 import { useForm } from "react-hook-form";
 import uuid from "react-native-uuid";
 
-import { dateFormatter } from "../../utils/formatters";
 import { InputForm } from "../../components/Form/InputForm";
 import { Button } from "../../components/Form/Button";
 import { TransactionTypeButton } from "../../components/Form/TransactionTypeButton";
@@ -80,7 +79,7 @@ export const Register = () => {
       amount: form.amount,
       type: transactionType,
       category: category.key,
-      date: dateFormatter(new Date()),
+      date: new Date(),
     };
     try {
       const data = await AsyncStorage.getItem(dataKey);
