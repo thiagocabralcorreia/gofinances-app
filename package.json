@@ -17,6 +17,7 @@
     "@types/react": "~18.0.0",
     "@types/react-native": "~0.69.1",
     "@types/styled-components": "^5.1.26",
+    "date-fns": "^2.29.3",
     "expo": "~46.0.9",
     "expo-app-loading": "~2.1.0",
     "expo-font": "~10.2.0",

@@ -3,13 +3,25 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { VictoryPie } from "victory-native";
 import { useTheme } from "styled-components/native";
 import { RFValue } from "react-native-responsive-fontsize";
+import { addMonths, format, subMonths } from "date-fns";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 import { currencyFormatter } from "../../utils/formatters";
 import { categories } from "../../utils/categories";
 import { TransactionProps } from "../../components/TransactionCard";
 import { HistoryCard } from "../../components/HistoryCard";
 
-import { Container, Title, Header, Content, ChartContainer } from "./styles";
+import {
+  Container,
+  Title,
+  Header,
+  Content,
+  ChartContainer,
+  MonthSelect,
+  MonthSelectButton,
+  MonthSelectIcon,
+  Month,
+} from "./styles";
 
 interface ICategory {
   key: string;
@@ -22,7 +34,18 @@ interface ICategory {
 
 export const MonthlyChart = () => {
   const [categoriesTotal, setCategoriesTotal] = useState<ICategory[]>([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const theme = useTheme();
+
+  const handleDateChange = (action: "next" | "prev") => {
+    if (action === "next") {
+      const newDate = addMonths(selectedDate, 1);
+      setSelectedDate(newDate);
+    } else {
+      const newDate = subMonths(selectedDate, 1);
+      setSelectedDate(newDate);
+    }
+  };
 
   const loadData = async () => {
     const dataKey = "@gofinances:transactions";
@@ -30,16 +53,19 @@ export const MonthlyChart = () => {
     const formattedResponse = response ? JSON.parse(response) : [];
 
     const outflows = formattedResponse.filter(
-      (outflow: TransactionProps) => outflow.type === "negative"
+      (outflow: TransactionProps) =>
+        outflow.type === "negative" &&
+        new Date(outflow.date).getMonth() === selectedDate.getMonth() &&
+        new Date(outflow.date).getFullYear() === selectedDate.getFullYear()
     );
 
+    console.log({ outflows });
     const totalOutflows = outflows.reduce(
       (acumulattor: number, outflow: TransactionProps) => {
         return acumulattor + Number(outflow.amount);
       },
       0
     );
-
     const totalByCategory: ICategory[] = [];
 
     categories.forEach((category) => {
@@ -72,15 +98,34 @@ export const MonthlyChart = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+    console.log({ selectedDate });
+  }, [selectedDate]);
 
   return (
     <Container>
       <Header>
-        <Title>Monthly Chart</Title>
+        <Title>Monthly Outflows</Title>
       </Header>
 
-      <Content>
+      <Content
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingBottom: useBottomTabBarHeight(),
+        }}
+      >
+        <MonthSelect>
+          <MonthSelectButton onPress={() => handleDateChange("prev")}>
+            <MonthSelectIcon name={"chevron-left"} />
+          </MonthSelectButton>
+
+          <Month>{format(selectedDate, "MMMM, yyyy")}</Month>
+
+          <MonthSelectButton onPress={() => handleDateChange("next")}>
+            <MonthSelectIcon name={"chevron-right"} />
+          </MonthSelectButton>
+        </MonthSelect>
+
         <ChartContainer>
           <VictoryPie
             data={categoriesTotal}

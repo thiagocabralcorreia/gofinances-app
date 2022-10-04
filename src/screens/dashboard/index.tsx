@@ -8,8 +8,8 @@ import uuid from "react-native-uuid";
 import { currencyFormatter, dateFormatter } from "../../utils/formatters";
 import { HighlightCard } from "../../components/HighlightCard";
 import {
+  TransactionProps,
   TransactionCard,
-  TransactionCardProps,
 } from "../../components/TransactionCard";
 
 import {
@@ -33,7 +33,7 @@ import {
   LoadingContainer,
 } from "./styles";
 
-export interface DataListProps extends TransactionCardProps {
+export interface DataListProps extends TransactionProps {
   id: string;
 }
 
@@ -97,7 +97,7 @@ export const Dashboard = () => {
           amount,
           type: item.type,
           category: item.category,
-          date: item.date,
+          date: dateFormatter(item.date),
         };
       }
     );
