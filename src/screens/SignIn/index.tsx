@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useContext } from "react";
 import { RFValue } from "react-native-responsive-fontsize";
-import { SocialLoginButton } from "../../components/SocialLoginButton";
 
 import AppleSvg from "../../assets/apple.svg";
 import GoogleSvg from "../../assets/google.svg";
 import LogoSvg from "../../assets/logo.svg";
+import { useAuth } from "../../context/auth";
+import { SocialLoginButton } from "../../components/SocialLoginButton";
 
 import {
   Container,
@@ -17,6 +18,9 @@ import {
 } from "./styles";
 
 export const SignIn = () => {
+  const user = useAuth();
+  console.log({ user });
+
   return (
     <Container>
       <Header>
@@ -31,8 +35,8 @@ export const SignIn = () => {
       </Header>
       <Footer>
         <FooterWrapper>
-          <SocialLoginButton title={"Entrar com Google"} svg={GoogleSvg} />
-          <SocialLoginButton title={"Entrar com Apple"} svg={AppleSvg} />
+          <SocialLoginButton title={"Sign in with Google"} svg={GoogleSvg} />
+          <SocialLoginButton title={"Sign in with Apple"} svg={AppleSvg} />
         </FooterWrapper>
       </Footer>
     </Container>
