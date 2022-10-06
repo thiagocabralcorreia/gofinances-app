@@ -1,6 +1,11 @@
 import React, { useState, createContext, ReactNode, useContext } from "react";
+
 import * as AuthSession from "expo-auth-session";
+import * as AppleAuthentication from "expo-apple-authentication";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const { CLIENT_ID } = process.env;
+const { REDIRECT_URI } = process.env;
 
 import { COLLECTION_USER } from "../config/database";
 
@@ -18,6 +23,7 @@ interface UserSchema {
 interface IAuthContextData {
   user: UserSchema;
   signInWithGoogle(): Promise<void>;
+  signInWithApple(): Promise<void>;
 }
 
 interface AuthorizationResponse {
@@ -34,11 +40,6 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithGoogle = async () => {
     try {
-      // get info at https://console.cloud.google.com/apis/credentials/oauthclient/
-      const CLIENT_ID =
-        "312962930511-vpkqemtntnetir01uf3dtdrsufh3j5e8.apps.googleusercontent.com";
-      const REDIRECT_URI =
-        "https://auth.expo.io/@thiagocabralcorreia/gofinances";
       const RESPONSE_TYPE = "token";
       const SCOPE = encodeURI("profile email");
 
@@ -64,13 +65,38 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         await AsyncStorage.setItem(COLLECTION_USER, JSON.stringify(userLogged));
         console.log({ userLogged });
       }
-    } catch (e) {
-      throw new Error(e);
+    } catch (error: any) {
+      throw new Error(error);
+    }
+  };
+
+  const signInWithApple = async () => {
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (credential) {
+        const userLogged = {
+          id: String(credential.user),
+          email: credential.email!,
+          name: credential.fullName!.givenName!,
+          photo: undefined,
+        };
+
+        setUser(userLogged);
+        await AsyncStorage.setItem(COLLECTION_USER, JSON.stringify(userLogged));
+      }
+    } catch (error: any) {
+      throw new Error(error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, signInWithGoogle }}>
+    <AuthContext.Provider value={{ user, signInWithGoogle, signInWithApple }}>
       {children}
     </AuthContext.Provider>
   );
