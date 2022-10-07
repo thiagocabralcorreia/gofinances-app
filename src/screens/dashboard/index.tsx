@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { useTheme } from "styled-components/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import uuid from "react-native-uuid";
 
+import { useAuth } from "../../context/auth";
 import { currencyFormatter, dateFormatter } from "../../utils/formatters";
 import { HighlightCard } from "../../components/HighlightCard";
 import { Loading } from "../../components/Loading";
@@ -32,6 +32,7 @@ import {
   TrashButton,
   TrashIcon,
 } from "./styles";
+import { COLLECTION_TRANSACTIONS } from "../../config/database";
 
 export interface DataListProps extends TransactionProps {
   id: string;
@@ -53,7 +54,7 @@ export const Dashboard = () => {
   const [highlightData, setHighlightData] = useState({} as IHighlightData);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const theme = useTheme();
+  const { user, signOut } = useAuth();
 
   const getLastFlowDate = (
     collection: DataListProps[],
@@ -74,8 +75,10 @@ export const Dashboard = () => {
   };
 
   const loadTransactions = async () => {
-    const dataKey = "@gofinances:transactions";
-    const response = await AsyncStorage.getItem(dataKey);
+    const response = await AsyncStorage.getItem(
+      `${COLLECTION_TRANSACTIONS}:${user.id}`
+    );
+
     const transactions = response ? JSON.parse(response) : [];
 
     let totalInflows = 0;
@@ -150,15 +153,15 @@ export const Dashboard = () => {
               <UserInfo>
                 <Photo
                   source={{
-                    uri: "https://avatars.githubusercontent.com/u/74374833?v=4",
+                    uri: user.photo,
                   }}
                 />
                 <User>
                   <UserGreeting>Hi, </UserGreeting>
-                  <UserName>Thiago</UserName>
+                  <UserName>{user.name.split(" ")[0]}</UserName>
                 </User>
               </UserInfo>
-              <LogoutButton>
+              <LogoutButton onPress={signOut}>
                 <Icon name={"power"} />
               </LogoutButton>
             </UserWrapper>

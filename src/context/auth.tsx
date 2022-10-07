@@ -30,6 +30,8 @@ interface IAuthContextData {
   user: UserSchema;
   signInWithGoogle(): Promise<void>;
   signInWithApple(): Promise<void>;
+  signOut(): Promise<void>;
+  storedUserIsLoading: boolean;
 }
 
 interface AuthorizationResponse {
@@ -43,7 +45,7 @@ const AuthContext = createContext({} as IAuthContextData);
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<UserSchema>({} as UserSchema);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [storedUserIsLoading, setStoredUserIsLoading] = useState<boolean>(true);
 
   const signInWithGoogle = async () => {
     try {
@@ -86,11 +88,13 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       });
 
       if (credential) {
+        const name = credential.fullName!.givenName!;
+        const photo = `https://ui-avatars.com/api/?name=${name}&length=1&bold=true&background=ffffff`;
         const userLogged = {
           id: String(credential.user),
           email: credential.email!,
-          name: credential.fullName!.givenName!,
-          photo: undefined,
+          name,
+          photo,
         };
 
         setUser(userLogged);
@@ -101,21 +105,34 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  useEffect(() => {
-    const loadStoragedUserData = async () => {
-      const storagedUserData = await AsyncStorage.getItem(COLLECTION_USER);
+  const signOut = async () => {
+    setUser({} as UserSchema);
+    await AsyncStorage.removeItem(COLLECTION_USER);
+  };
 
-      if (storagedUserData) {
-        const userLogged = JSON.parse(storagedUserData);
+  useEffect(() => {
+    const loadStoredUserData = async () => {
+      const storedUserData = await AsyncStorage.getItem(COLLECTION_USER);
+
+      if (storedUserData) {
+        const userLogged = JSON.parse(storedUserData);
         setUser(userLogged);
       }
-      setIsLoading(false);
+      setStoredUserIsLoading(false);
     };
-    loadStoragedUserData();
+    loadStoredUserData();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, signInWithGoogle, signInWithApple }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        signInWithGoogle,
+        signInWithApple,
+        signOut,
+        storedUserIsLoading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
