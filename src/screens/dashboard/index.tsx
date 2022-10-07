@@ -60,6 +60,12 @@ export const Dashboard = () => {
     collection: DataListProps[],
     type: "positive" | "negative"
   ) => {
+    const filteredCollection = collection.filter(
+      (transaction) => transaction.type === type
+    );
+
+    if (filteredCollection.length === 0) return 0;
+
     const lastTransaction = new Date(
       Math.max.apply(
         Math,
@@ -118,15 +124,19 @@ export const Dashboard = () => {
     setHighlightData({
       inflows: {
         amount: currencyFormatter(totalInflows),
-        lastTransaction: `Last inflow: ${lastInflows}`,
+        lastTransaction: lastInflows === 0 ? "" : `Last inflow: ${lastInflows}`,
       },
       outflows: {
         amount: currencyFormatter(totalOutflows),
-        lastTransaction: `Last outflow: ${lastOutflows}`,
+        lastTransaction:
+          lastOutflows === 0 ? "" : `Last outflow: ${lastOutflows}`,
       },
       totalBalance: {
         amount: currencyFormatter(totalBalance),
-        lastTransaction: `Last transaction: ${totalInterval}`,
+        lastTransaction:
+          lastInflows === 0 && lastOutflows === 0
+            ? ""
+            : `Last transaction: ${totalInterval}`,
       },
     });
     setIsLoading(false);

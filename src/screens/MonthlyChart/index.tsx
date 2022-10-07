@@ -7,6 +7,8 @@ import { useTheme } from "styled-components/native";
 import { addMonths, format, subMonths } from "date-fns";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { useAuth } from "../../context/auth";
+import { COLLECTION_TRANSACTIONS } from "../../config/database";
 import { currencyFormatter } from "../../utils/formatters";
 import { categories } from "../../utils/categories";
 import { TransactionProps } from "../../components/TransactionCard";
@@ -39,6 +41,7 @@ export const MonthlyChart = () => {
   const [categoriesTotal, setCategoriesTotal] = useState<ICategory[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const theme = useTheme();
+  const { user } = useAuth();
 
   const handleDateChange = (action: "next" | "prev") => {
     if (action === "next") {
@@ -52,8 +55,9 @@ export const MonthlyChart = () => {
 
   const loadData = async () => {
     setIsLoading(true);
-    const dataKey = "@gofinances:transactions";
-    const response = await AsyncStorage.getItem(dataKey);
+    const response = await AsyncStorage.getItem(
+      `${COLLECTION_TRANSACTIONS}:${user.id}`
+    );
     const formattedResponse = response ? JSON.parse(response) : [];
 
     const outflows = formattedResponse.filter(

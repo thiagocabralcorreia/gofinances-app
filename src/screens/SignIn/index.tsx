@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
 import { RFValue } from "react-native-responsive-fontsize";
 
 import AppleSvg from "../../assets/apple.svg";
@@ -64,11 +64,13 @@ export const SignIn = () => {
             svg={GoogleSvg}
             onPress={handleSignInWithGoogle}
           />
-          <SocialLoginButton
-            title={"Sign in with Apple"}
-            svg={AppleSvg}
-            onPress={handleSignInWithApple}
-          />
+          {Platform.OS === "ios" && (
+            <SocialLoginButton
+              title={"Sign in with Apple"}
+              svg={AppleSvg}
+              onPress={handleSignInWithApple}
+            />
+          )}
         </FooterWrapper>
 
         {isLoading && <Loading />}
