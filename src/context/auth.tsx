@@ -1,4 +1,10 @@
-import React, { useState, createContext, ReactNode, useContext } from "react";
+import React, {
+  useState,
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+} from "react";
 
 import * as AuthSession from "expo-auth-session";
 import * as AppleAuthentication from "expo-apple-authentication";
@@ -37,6 +43,7 @@ const AuthContext = createContext({} as IAuthContextData);
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<UserSchema>({} as UserSchema);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const signInWithGoogle = async () => {
     try {
@@ -63,7 +70,6 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         };
         setUser(userLogged);
         await AsyncStorage.setItem(COLLECTION_USER, JSON.stringify(userLogged));
-        console.log({ userLogged });
       }
     } catch (error: any) {
       throw new Error(error);
@@ -94,6 +100,19 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       throw new Error(error);
     }
   };
+
+  useEffect(() => {
+    const loadStoragedUserData = async () => {
+      const storagedUserData = await AsyncStorage.getItem(COLLECTION_USER);
+
+      if (storagedUserData) {
+        const userLogged = JSON.parse(storagedUserData);
+        setUser(userLogged);
+      }
+      setIsLoading(false);
+    };
+    loadStoragedUserData();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, signInWithGoogle, signInWithApple }}>

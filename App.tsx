@@ -1,6 +1,6 @@
 import React from "react";
 import { StatusBar, LogBox } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { Routes } from "./src/routes";
 import { ThemeProvider } from "styled-components";
 import * as SplashScreen from "expo-splash-screen";
 import "intl";
@@ -14,8 +14,6 @@ import {
 } from "@expo-google-fonts/poppins";
 
 import theme from "./src/global/styles/theme";
-import { AppRoutes } from "./src/routes/app.routes";
-import { SignIn } from "./src/screens/SignIn";
 import { AuthProvider } from "./src/context/auth";
 
 SplashScreen.preventAutoHideAsync();
@@ -29,7 +27,6 @@ export default function App() {
   });
 
   if (loadedFont) {
-    // This tells the splash screen to hide immediately
     SplashScreen.hideAsync();
   }
   if (!loadedFont) {
@@ -38,16 +35,13 @@ export default function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <NavigationContainer>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor={theme.colors.primary}
-        />
-        <AuthProvider>
-          <SignIn />
-          {/* <AppRoutes /> */}
-        </AuthProvider>
-      </NavigationContainer>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={theme.colors.primary}
+      />
+      <AuthProvider>
+        <Routes />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
