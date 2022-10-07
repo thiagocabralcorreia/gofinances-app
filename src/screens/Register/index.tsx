@@ -12,6 +12,7 @@ import { Button } from "../../components/Form/Button";
 import { TransactionTypeButton } from "../../components/Form/TransactionTypeButton";
 import { CategorySelectButton } from "../../components/Form/CategorySelectButton";
 import { CategoryList, CategoryProps } from "../CategoryList";
+import { COLLECTION_TRANSACTIONS } from "../../config/database";
 
 import {
   Container,
@@ -21,11 +22,20 @@ import {
   TopFormContent,
   TransactionsTypes,
 } from "./styles";
+import { useAuth } from "../../context/auth";
 
 interface FormData {
   name: string;
   amount: string;
 }
+
+const schema = Yup.object().shape({
+  name: Yup.string().required("Name is required"),
+  amount: Yup.number()
+    .typeError("Enter the numeric value")
+    .positive("Value cannot be negative")
+    .required("Required value"),
+});
 
 export const Register = () => {
   const [transactionType, setTransactionType] = useState("");
@@ -35,6 +45,8 @@ export const Register = () => {
     name: "Category",
     icon: null,
   });
+
+  const { user } = useAuth();
 
   const navigation = useNavigation();
   const dataKey = "@gofinances:transactions";
@@ -49,14 +61,6 @@ export const Register = () => {
   function handleTransactionTypeSelect(type: "positive" | "negative") {
     setTransactionType(type);
   }
-
-  const schema = Yup.object().shape({
-    name: Yup.string().required("Name is required"),
-    amount: Yup.number()
-      .typeError("Enter the numeric value")
-      .positive("Value cannot be negative")
-      .required("Required value"),
-  });
 
   const {
     control,
@@ -82,12 +86,17 @@ export const Register = () => {
       date: new Date(),
     };
     try {
-      const data = await AsyncStorage.getItem(dataKey);
+      const data = await AsyncStorage.getItem(
+        `${COLLECTION_TRANSACTIONS}:${user.id}`
+      );
       const currentData = data ? JSON.parse(data) : [];
 
       const formattedData = [...currentData, newTransaction];
 
-      await AsyncStorage.setItem(dataKey, JSON.stringify(formattedData));
+      await AsyncStorage.setItem(
+        `${COLLECTION_TRANSACTIONS}:${user.id}`,
+        JSON.stringify(formattedData)
+      );
 
       reset();
       setTransactionType("");

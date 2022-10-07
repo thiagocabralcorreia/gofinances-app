@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { useTheme } from "styled-components/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import uuid from "react-native-uuid";
 
+import { useAuth } from "../../context/auth";
 import { currencyFormatter, dateFormatter } from "../../utils/formatters";
 import { HighlightCard } from "../../components/HighlightCard";
 import { Loading } from "../../components/Loading";
@@ -32,6 +32,7 @@ import {
   TrashButton,
   TrashIcon,
 } from "./styles";
+import { COLLECTION_TRANSACTIONS } from "../../config/database";
 
 export interface DataListProps extends TransactionProps {
   id: string;
@@ -53,12 +54,18 @@ export const Dashboard = () => {
   const [highlightData, setHighlightData] = useState({} as IHighlightData);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const theme = useTheme();
+  const { user, signOut } = useAuth();
 
   const getLastFlowDate = (
     collection: DataListProps[],
     type: "positive" | "negative"
   ) => {
+    const filteredCollection = collection.filter(
+      (transaction) => transaction.type === type
+    );
+
+    if (filteredCollection.length === 0) return 0;
+
     const lastTransaction = new Date(
       Math.max.apply(
         Math,
@@ -74,8 +81,10 @@ export const Dashboard = () => {
   };
 
   const loadTransactions = async () => {
-    const dataKey = "@gofinances:transactions";
-    const response = await AsyncStorage.getItem(dataKey);
+    const response = await AsyncStorage.getItem(
+      `${COLLECTION_TRANSACTIONS}:${user.id}`
+    );
+
     const transactions = response ? JSON.parse(response) : [];
 
     let totalInflows = 0;
@@ -115,15 +124,19 @@ export const Dashboard = () => {
     setHighlightData({
       inflows: {
         amount: currencyFormatter(totalInflows),
-        lastTransaction: `Last inflow: ${lastInflows}`,
+        lastTransaction: lastInflows === 0 ? "" : `Last inflow: ${lastInflows}`,
       },
       outflows: {
         amount: currencyFormatter(totalOutflows),
-        lastTransaction: `Last outflow: ${lastOutflows}`,
+        lastTransaction:
+          lastOutflows === 0 ? "" : `Last outflow: ${lastOutflows}`,
       },
       totalBalance: {
         amount: currencyFormatter(totalBalance),
-        lastTransaction: `Last transaction: ${totalInterval}`,
+        lastTransaction:
+          lastInflows === 0 && lastOutflows === 0
+            ? ""
+            : `Last transaction: ${totalInterval}`,
       },
     });
     setIsLoading(false);
@@ -150,15 +163,15 @@ export const Dashboard = () => {
               <UserInfo>
                 <Photo
                   source={{
-                    uri: "https://avatars.githubusercontent.com/u/74374833?v=4",
+                    uri: user.photo,
                   }}
                 />
                 <User>
                   <UserGreeting>Hi, </UserGreeting>
-                  <UserName>Thiago</UserName>
+                  <UserName>{user.name.split(" ")[0]}</UserName>
                 </User>
               </UserInfo>
-              <LogoutButton>
+              <LogoutButton onPress={signOut}>
                 <Icon name={"power"} />
               </LogoutButton>
             </UserWrapper>

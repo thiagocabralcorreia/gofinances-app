@@ -1,4 +1,5 @@
-import React, { useContext } from "react";
+import React, { useState } from "react";
+import { Alert, Platform } from "react-native";
 import { RFValue } from "react-native-responsive-fontsize";
 
 import AppleSvg from "../../assets/apple.svg";
@@ -6,6 +7,7 @@ import GoogleSvg from "../../assets/google.svg";
 import LogoSvg from "../../assets/logo.svg";
 import { useAuth } from "../../context/auth";
 import { SocialLoginButton } from "../../components/SocialLoginButton";
+import { Loading } from "../../components/Loading";
 
 import {
   Container,
@@ -18,8 +20,30 @@ import {
 } from "./styles";
 
 export const SignIn = () => {
-  const user = useAuth();
-  console.log({ user });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { signInWithGoogle, signInWithApple } = useAuth();
+
+  const handleSignInWithGoogle = async () => {
+    try {
+      setIsLoading(true);
+      await signInWithGoogle();
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Could not connect to Google account.");
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignInWithApple = async () => {
+    try {
+      setIsLoading(true);
+      await signInWithApple();
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Could not connect to Apple account.");
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Container>
@@ -35,9 +59,21 @@ export const SignIn = () => {
       </Header>
       <Footer>
         <FooterWrapper>
-          <SocialLoginButton title={"Sign in with Google"} svg={GoogleSvg} />
-          <SocialLoginButton title={"Sign in with Apple"} svg={AppleSvg} />
+          <SocialLoginButton
+            title={"Sign in with Google"}
+            svg={GoogleSvg}
+            onPress={handleSignInWithGoogle}
+          />
+          {Platform.OS === "ios" && (
+            <SocialLoginButton
+              title={"Sign in with Apple"}
+              svg={AppleSvg}
+              onPress={handleSignInWithApple}
+            />
+          )}
         </FooterWrapper>
+
+        {isLoading && <Loading />}
       </Footer>
     </Container>
   );

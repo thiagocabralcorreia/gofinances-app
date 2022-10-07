@@ -1,8 +1,9 @@
 import React from "react";
 import { StatusBar, LogBox } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { Routes } from "./src/routes";
 import { ThemeProvider } from "styled-components";
 import * as SplashScreen from "expo-splash-screen";
+import AppLoading from "expo-app-loading/build/AppLoadingNativeWrapper";
 import "intl";
 import "intl/locale-data/jsonp/en-GB";
 
@@ -14,13 +15,13 @@ import {
 } from "@expo-google-fonts/poppins";
 
 import theme from "./src/global/styles/theme";
-import { AppRoutes } from "./src/routes/app.routes";
-import { SignIn } from "./src/screens/SignIn";
-import { AuthProvider } from "./src/context/auth";
+import { AuthProvider, useAuth } from "./src/context/auth";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+  const { storedUserIsLoading } = useAuth();
+
   LogBox.ignoreLogs(["Remote debugger"]);
   const [loadedFont] = useFonts({
     Poppins_400Regular,
@@ -28,26 +29,23 @@ export default function App() {
     Poppins_700Bold,
   });
 
-  if (loadedFont) {
-    // This tells the splash screen to hide immediately
-    SplashScreen.hideAsync();
+  if (!loadedFont || storedUserIsLoading) {
+    return <AppLoading />;
   }
-  if (!loadedFont) {
-    return null;
+
+  if (loadedFont) {
+    SplashScreen.hideAsync();
   }
 
   return (
     <ThemeProvider theme={theme}>
-      <NavigationContainer>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor={theme.colors.primary}
-        />
-        <AuthProvider>
-          <SignIn />
-          {/* <AppRoutes /> */}
-        </AuthProvider>
-      </NavigationContainer>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={theme.colors.primary}
+      />
+      <AuthProvider>
+        <Routes />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
